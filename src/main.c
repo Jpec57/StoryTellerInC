@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <stdarg.h>
+
 
 enum READ {SAME_LINE, SKIP_LINE};
 
@@ -34,29 +36,73 @@ char* itoa(int num)
     return res;
 }
 
+
 char *concat(char *str1, char *str2)
 {
 	char	*res;
 	int		size;
+	int 	size2;
 	
-	size = strlen(str1) + strlen(str2);
-	res = malloc(sizeof(char) * (size + 1));
-	res[size] = '\0';
+	size = strlen(str1);
+	size2 = strlen(str2);
+	res = malloc(sizeof(char) * (size + size2 + 1));
+	res[size + size2] = '\0';
 	strcpy(res, str1);
 	strcat(res, str2);
 	return (res);
 }
 
+/*
+char *concat(int nbr_pieces, ...)
+{
+	char	*res;
+	int		size;
+    int		i;
+	va_list args;
+    va_start(args, nbr_pieces);
+	if (nbr_pieces <= 1){
+		return NULL;
+	}
+	i = nbr_pieces;
+	size = 0;
+	while (i--){
+		char *line = va_arg(args, char *);
+		size = strlen(str)
+	}
+	while (nbr_pieces--){
+		char *line = va_arg(args, char *);
+		printf("%s\n", line);
+	}
+
+	
+	// size = strlen(str1) + strlen(str2);
+	// res = malloc(sizeof(char) * (size + 1));
+	// res[size] = '\0';
+	// strcpy(res, str1);
+	// strcat(res, str2);
+	// return (res);
+	va_end(args);
+	return "test";
+}
+*/
 char *get_kill_command(char *target)
 {
 	return concat("kill ", target);
 }
 
-int		show_picture()
+int		show_picture(char *picture_name)
 {
-	pid_t pid;
+	pid_t 	pid;
+	int		size;
 	
 	pid = fork();
+	size = strlen(picture_name);
+	/*
+		In our case, a '\n' is added at the end of the line because of a break of line 
+	*/
+	if (picture_name[size - 1] == '\n'){
+		picture_name[strlen(picture_name) - 1] = '\0';
+	}
 	if (pid < 0)
 	{
 		fprintf(stderr, "fork failed");
@@ -64,14 +110,16 @@ int		show_picture()
 	}
 	else if (pid == 0)
 	{
-		execlp("open", "open", "-a", "Preview", "imgs/nuitdehors.jpg",NULL);
+		execlp("open", "open", "-a", "Preview", concat("imgs/", picture_name), NULL);
+		// execlp("open", "open", "-a", "Preview", "imgs/nuitdehors.jpg",NULL);
 	}
 	else
 	{
 		wait(NULL);
 		sleep(3);
 		int  pid2;
-		FILE *fp = popen("lsof -c Preview | grep nuitdehors.jpg | cut -d ' ' -f2", "r");
+		FILE *fp = popen(concat(concat("lsof -c Preview | grep ", picture_name), " | cut -d ' ' -f2"), "r");
+		// FILE *fp = popen("lsof -c Preview | grep nuitdehors.jpg | cut -d ' ' -f2", "r");
 		fscanf(fp, "%d", &pid2);
 		pclose(fp);
 		system(get_kill_command(itoa(pid2)));
@@ -88,7 +136,7 @@ void	simulate_typewriter(char *line, int skip_line)
 	struct timespec time;
 
 	time.tv_sec  = 0;
-	time.tv_nsec = 150000000L;
+	time.tv_nsec = 100000000L;
 	size = strlen(line);
 	i = 0;
 	while (i < size)
@@ -116,14 +164,15 @@ int		main()
     char *line = NULL;
 	size_t len = 0;
     ssize_t read;
-
+	// concat(3, "abc", "def", "hij");
+	// printf(concat("abc", "def", "hij"));
     fd = fopen("script.txt", "r");
 	if (fd == 0){
 		return (1);
 	}
     while ((read = getline(&line, &len, fd)) != -1) {
 		if (*line == '#'){
-			show_picture();
+			show_picture(&(line[1]));
 		}else{
         	// printf("%s", line);
 			simulate_typewriter(line, SKIP_LINE);

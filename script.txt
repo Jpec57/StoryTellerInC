@@ -2,8 +2,9 @@ This is a test.
 This is an incredible story that I am currently writing to test my program.
 So far so good but I'm not confident enough to stop writing.
 I will now insert an image
-#picture1.jpg
+#goku.jpg
 Should be closed now.
 What about another ?
-#picture2.jpg
+#ippo1.jpg
 Here you go, you have a fully functional program.
+#ippo2.jpg
