@@ -90,18 +90,47 @@ char *get_kill_command(char *target)
 	return concat("kill ", target);
 }
 
+int		ft_atoi(const char *str, int *k)
+{
+	long	res;
+	int		signe;
+
+	signe = 1;
+	res = 0;
+
+	while (str[*k] == '\t' || str[*k] == '\n' || str[*k] == '\r' ||
+			str[*k] == '\v' || str[*k] == '\f' || str[*k] == 32)
+		(*k)++;
+	if (str[*k] == '+' || str[*k] == '-')
+	{
+		if (str[*k] == '-')
+			signe = -1;
+		(*k)++;
+	}
+	while (48 <= str[*k] && str[*k] <= 57)
+	{
+		res = res * 10 + (str[*k] - 48);
+		(*k)++;
+	}
+	return ((int)(res * signe));
+}
+
 int		show_picture(char *picture_name)
 {
 	pid_t 	pid;
 	int		size;
+	int		duration;
+	int		k;
 	
+	k = 0;
 	pid = fork();
-	size = strlen(picture_name);
+	duration = ft_atoi(picture_name, &k);
+	size = strlen(&picture_name[k]);
 	/*
 		In our case, a '\n' is added at the end of the line because of a break of line 
 	*/
-	if (picture_name[size - 1] == '\n'){
-		picture_name[strlen(picture_name) - 1] = '\0';
+	if (picture_name[k + size - 1] == '\n'){
+		picture_name[k + size - 1] = '\0';
 	}
 	if (pid < 0)
 	{
@@ -110,15 +139,15 @@ int		show_picture(char *picture_name)
 	}
 	else if (pid == 0)
 	{
-		execlp("open", "open", "-a", "Preview", concat("imgs/", picture_name), NULL);
+		execlp("open", "open", "-a", "Preview", concat("imgs/", &picture_name[k]), NULL);
 		// execlp("open", "open", "-a", "Preview", "imgs/nuitdehors.jpg",NULL);
 	}
 	else
 	{
 		wait(NULL);
-		sleep(3);
+		sleep(1 * duration);
 		int  pid2;
-		FILE *fp = popen(concat(concat("lsof -c Preview | grep ", picture_name), " | cut -d ' ' -f2"), "r");
+		FILE *fp = popen(concat(concat("lsof -c Preview | grep ", &picture_name[k]), " | cut -d ' ' -f2"), "r");
 		// FILE *fp = popen("lsof -c Preview | grep nuitdehors.jpg | cut -d ' ' -f2", "r");
 		fscanf(fp, "%d", &pid2);
 		pclose(fp);
